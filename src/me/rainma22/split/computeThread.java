@@ -4,13 +4,13 @@ package me.rainma22.split;
 import java.util.ArrayList;
 
 public class computeThread extends Thread{
-
+    public boolean running=true;
     @Override
     public void run() {
         long current=System.currentTimeMillis();
         long prev=current,diff;
         int i=0;
-        while (true){
+        while (running){
             System.out.println(Main.isStart());
             current=System.currentTimeMillis();
             if (Main.isStart()){
@@ -31,7 +31,10 @@ public class computeThread extends Thread{
 
                 }else{
                     if (balls.size()==2){
-                        if (balls.get(0).gety()<=balls.get(1).gety()) balls.remove(1);
+                        if (balls.get(0).gety()<=balls.get(1).gety()){
+                            balls.remove(1);
+                            Main.setState(true);
+                        }
                         else{
                             ball now=balls.get(0);
                             now.sety((int)(now.gety()-speed+0.5));
@@ -42,7 +45,7 @@ public class computeThread extends Thread{
                 }
                 ArrayList<Displayable> remove=new ArrayList<>(0);
                 ArrayList<Displayable> obstacles= (ArrayList<Displayable>) Main.getObstacles().clone();
-                    i+=Main.difficulty+Main.difficulty*Math.random();
+                    i+=Main.difficulty+Main.difficulty*Math.random()*10;
                     if (i >= 500) {
                         obstacles.add(new Obstacle());
                         i%=500;
@@ -52,7 +55,10 @@ public class computeThread extends Thread{
                     if (obstacle.getx()<=0) remove.add(obstacle);
                     for (Displayable ball:balls){
                         if (ball.getx()+ball.getImage().getWidth()>=obstacle.getx()&&ball.getx()<=obstacle.getx()+obstacle.getImage().getWidth()){
-                            if (ball.gety()+ball.getImage().getHeight()>=obstacle.gety()&&ball.gety()<=obstacle.gety()+obstacle.getImage().getHeight()) Main.setStart(false);
+                            if (ball.gety()+ball.getImage().getHeight()>=obstacle.gety()&&ball.gety()<=obstacle.gety()+obstacle.getImage().getHeight()){
+                                Main.setStart(false);
+                                Main.setFailed(true);
+                            }
                         }
                     }
                 }

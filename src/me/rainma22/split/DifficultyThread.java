@@ -1,15 +1,16 @@
 package me.rainma22.split;
 
 public class DifficultyThread extends Thread{
+    public boolean running=true;
     @Override
     public void run() {
         double d=1;
-        while (true){
+        while (running){
             if (Main.isStart()){
             try {
                 Thread.sleep(60);
                 d+=0.0001;
-                Main.difficulty= (5*Math.pow(d,2));
+                Main.difficulty= 2.5*(Math.pow(d,2));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

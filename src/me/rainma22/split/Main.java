@@ -7,7 +7,21 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
 public class Main {
+    private static String[] menu=new String[]{"Continue","restart","Exit"};
+    private static int selected=0;
     private static boolean state=false;
+    private static computeThread ct= new computeThread();
+    private static DisplayThread dt= new DisplayThread();
+    private static DifficultyThread dft=new DifficultyThread();
+    private static boolean failed=false;
+
+    public static synchronized boolean isFailed() {
+        return failed;
+    }
+
+    public static synchronized void setFailed(boolean failed) {
+        Main.failed = failed;
+    }
 
     public synchronized static boolean isState() {
         return state;
@@ -58,7 +72,37 @@ public class Main {
 
             @Override
             public void keyPressed(KeyEvent e) {
-
+                if (!start){
+                    if (e.getKeyCode()==KeyEvent.VK_UP) selected-=1;
+                    else if (e.getKeyCode()==KeyEvent.VK_DOWN) selected+=1;
+                    else if (e.getKeyCode()==KeyEvent.VK_ENTER){
+                        switch (selected){
+                            case 0:
+                                start=true;
+                                if (!isFailed()) break;
+                            case 1:
+                                start=true;
+                                score=0;
+                                ct.running=false;
+                                dt.running=false;
+                                dft.running=false;
+                                ct=new computeThread();
+                                dt=new DisplayThread();
+                                dft=new DifficultyThread();
+                                ct.start();
+                                dt.start();
+                                dft.start();
+                                balls=new ArrayList<>(0);
+                                balls.add(new ball());
+                                obstacles=new ArrayList<>(0);
+                                state=false;
+                                break;
+                            case 2:
+                                Runtime.getRuntime().exit(0);
+                        }
+                    }
+                    selected=selected%3;
+                }
             }
 
             @Override
@@ -80,7 +124,9 @@ public class Main {
                 g.fillRect(0,0,gf.getWidth(),getHeight());
                 g.setColor(Color.WHITE);
                 g.setFont(g.getFont().deriveFont((float) (tk.getScreenSize().width/40)));
-                g.drawString(String.valueOf(score),tk.getScreenSize().width/2-((g.getFont().getSize()*String.valueOf(score).length())/2),tk.getScreenSize().height/10-g.getFont().getSize()/2);
+                FontMetrics fm=g.getFontMetrics();
+                g.drawString(String.valueOf(score),tk.getScreenSize().width/2-(fm.stringWidth(String.valueOf(score))/2),tk.getScreenSize().height/10-g.getFont().getSize()/2);
+
                 for (Displayable displayable: (ArrayList<Displayable>)getBalls().clone()) {
                     g.drawImage(displayable.getImage(),displayable.getx(),displayable.gety(),gf);
                     //System.out.println("repainted");
@@ -88,12 +134,24 @@ public class Main {
                 for (Displayable displayable:(ArrayList<Displayable>)getObstacles().clone()) {
                     g.drawImage(displayable.getImage(),displayable.getx(),displayable.gety(),gf);
                 }
+                if (!start){
+                    g.setColor(new Color(0, 0, 0, 150));
+                    g.fillRect(0,0,gf.getWidth(),gf.getHeight());
+                    for (int i = 0; i < menu.length; i++) {
+                        if (selected==i){
+                            g.setColor(new Color(0, 164, 253,255));
+                        }else{
+                            g.setColor(Color.WHITE);
+                        }
+                        g.drawString(menu[i], (gf.getWidth()-(fm.stringWidth(menu[i])))/2,tk.getScreenSize().height/5*(i+2)-fm.getHeight()/2);
+                    }
+                }
             }
         });
         gf.setUndecorated(true);
         gf.setVisible(true);
-        new computeThread().start();
-        new DisplayThread().start();
-        new DifficultyThread().start();
+        ct.start();
+        dt.start();
+        dft.start();
     }
 }

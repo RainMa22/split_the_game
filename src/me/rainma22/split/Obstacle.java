@@ -10,7 +10,11 @@ public class Obstacle implements Displayable{
         Toolkit tk=Toolkit.getDefaultToolkit();
         image=new BufferedImage(20, 20,BufferedImage.TYPE_INT_RGB);
         x=tk.getScreenSize().width;
-        y=tk.getScreenSize().height/2-image.getHeight()/2;
+        double d=Math.random();
+        y=(int)((tk.getScreenSize().getHeight()*d-image.getHeight()/2)+.5);
+        /*if (d<=.3333) y=50-image.getHeight()/2;
+        else if (d<=.6666)y=tk.getScreenSize().height/2-image.getHeight()/2;
+        else y=tk.getScreenSize().height-50-image.getHeight();*/
         Graphics2D g2d= image.createGraphics();
         g2d.setColor(Color.RED);
         g2d.fillRect(0,0,20,20);
