@@ -8,12 +8,13 @@ public class Obstacle implements Displayable{
     int x,y;
     public Obstacle(){
         Toolkit tk=Toolkit.getDefaultToolkit();
-        image=new BufferedImage(20, 20,BufferedImage.TYPE_BYTE_GRAY);
-        x=tk.getScreenSize().width/2-image.getWidth()/2;
-        y=tk.getScreenSize().height;
-        Graphics2D g2d= image.createGraphics();;
+        image=new BufferedImage(20, 20,BufferedImage.TYPE_INT_RGB);
+        x=tk.getScreenSize().width;
+        y=tk.getScreenSize().height/2-image.getHeight()/2;
+        Graphics2D g2d= image.createGraphics();
         g2d.setColor(Color.RED);
         g2d.fillRect(0,0,20,20);
+        g2d.dispose();
     }
     @Override
     public BufferedImage getImage() {

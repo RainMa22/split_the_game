@@ -5,7 +5,7 @@ public class DifficultyThread extends Thread{
     public void run() {
         double d=1;
         while (true){
-            if (Main.start){
+            if (Main.isStart()){
             try {
                 Thread.sleep(60);
                 d+=0.0001;
