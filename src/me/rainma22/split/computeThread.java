@@ -11,7 +11,6 @@ public class computeThread extends Thread{
         long prev=current,diff;
         int i=0;
         while (running){
-            System.out.println(Main.isStart());
             current=System.currentTimeMillis();
             if (Main.isStart()){
             diff=current-prev;
@@ -32,7 +31,7 @@ public class computeThread extends Thread{
                 }else{
                     if (balls.size()==2){
                         if (balls.get(0).gety()<=balls.get(1).gety()){
-                            balls.remove(1);
+                            //balls.remove(1);
                             Main.setState(true);
                         }
                         else{

@@ -7,7 +7,7 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 
 public class Main {
-    private static String[] menu=new String[]{"Continue","restart","Exit"};
+    private static String[] menu=new String[]{"Continue","Restart","Exit"};
     private static int selected=0;
     private static boolean state=false;
     private static computeThread ct= new computeThread();
@@ -82,6 +82,7 @@ public class Main {
                                 if (!isFailed()) break;
                             case 1:
                                 start=true;
+                                failed=false;
                                 score=0;
                                 ct.running=false;
                                 dt.running=false;
@@ -101,6 +102,7 @@ public class Main {
                                 Runtime.getRuntime().exit(0);
                         }
                     }
+                    if (selected<0)selected=1-selected;
                     selected=selected%3;
                 }
             }
@@ -120,6 +122,9 @@ public class Main {
         gf.add(new JPanel(){
             @Override
             public void paintComponent(Graphics g){
+                ((Graphics2D)g).setRenderingHint(
+                        RenderingHints.KEY_TEXT_ANTIALIASING,
+                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 g.setColor(new Color(97,97,97,255));
                 g.fillRect(0,0,gf.getWidth(),getHeight());
                 g.setColor(Color.WHITE);
