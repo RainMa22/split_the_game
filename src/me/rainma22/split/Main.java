@@ -1,19 +1,32 @@
 package me.rainma22.split;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
-    private static String[] menu=new String[]{"Continue","Restart","Exit"};
-    private static int selected=0;
-    private static boolean state=false;
-    private static computeThread ct= new computeThread();
-    private static DisplayThread dt= new DisplayThread();
-    private static DifficultyThread dft=new DifficultyThread();
-    private static boolean failed=false;
+    public static GameFrame gf = new GameFrame();
+    public static double difficulty = 1;
+    public static int score = 0;
+    public static BufferedImage spriteList;
+    private static final String[] menu = new String[]{"Continue", "Restart", "Exit"};
+    private static int selected = 0;
+    private static boolean state = false;
+    private static computeThread ct = new computeThread();
+    private static DisplayThread dt = new DisplayThread();
+    private static DifficultyThread dft = new DifficultyThread();
+    private static boolean failed = false;
+    private static boolean start = false;
+    private static ArrayList<ball> balls = new ArrayList<>(2);
+    private static ArrayList<Displayable> obstacles = new ArrayList<>(2);
+    private static ArrayList<backdrop> backdrops=new ArrayList<>(512);
+    private static Planet planet;
 
     public static synchronized boolean isFailed() {
         return failed;
@@ -39,16 +52,11 @@ public class Main {
         Main.start = start;
     }
 
-    private static boolean start=false;
-    public static GameFrame gf=new GameFrame();
-    private static ArrayList<ball> balls=new ArrayList<>(2);
-    private static ArrayList<Displayable> obstacles=new ArrayList<>(2);
-
     public synchronized static ArrayList<ball> getBalls() {
         return balls;
     }
 
-    public static synchronized void  setBalls(ArrayList<ball> balls) {
+    public static synchronized void setBalls(ArrayList<ball> balls) {
         Main.balls = balls;
     }
 
@@ -60,10 +68,28 @@ public class Main {
         Main.obstacles = obstacles;
     }
 
-    public static double difficulty=1;
-    public static int score=0;
-    public static void main(String[] args) {
-        Toolkit tk=Toolkit.getDefaultToolkit();
+    public synchronized static Planet getPlanet() {
+        return planet;
+    }
+
+    public synchronized static void setPlanet(Planet planet) {
+        Main.planet = planet;
+    }
+
+    public synchronized static ArrayList<backdrop> getBackdrops() {
+        return backdrops;
+    }
+
+    public static synchronized void setBackdrops(ArrayList<backdrop> backdrops) {
+        Main.backdrops = backdrops;
+    }
+
+
+
+    public static void main(String[] args) throws IOException {
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        planet=new Planet(1);
+        spriteList = ImageIO.read(new File("sprite.png"));
         gf.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -72,91 +98,110 @@ public class Main {
 
             @Override
             public void keyPressed(KeyEvent e) {
-                if (!start){
-                    if (e.getKeyCode()==KeyEvent.VK_UP) selected-=1;
-                    else if (e.getKeyCode()==KeyEvent.VK_DOWN) selected+=1;
-                    else if (e.getKeyCode()==KeyEvent.VK_ENTER){
-                        switch (selected){
+                if (!start) {
+                    if (e.getKeyCode() == KeyEvent.VK_UP) selected -= 1;
+                    else if (e.getKeyCode() == KeyEvent.VK_DOWN) selected += 1;
+                    else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        switch (selected) {
                             case 0:
-                                start=true;
+                                start = true;
                                 if (!isFailed()) break;
                             case 1:
-                                start=true;
-                                failed=false;
-                                score=0;
-                                ct.running=false;
-                                dt.running=false;
-                                dft.running=false;
-                                ct=new computeThread();
-                                dt=new DisplayThread();
-                                dft=new DifficultyThread();
+                                start = true;
+                                failed = false;
+                                score = 0;
+                                ct.running = false;
+                                dt.running = false;
+                                dft.running = false;
+                                backdrops.clear();
+                                backdropGenerator.init();
+                                ct = new computeThread();
+                                dt = new DisplayThread();
+                                dft = new DifficultyThread();
                                 ct.start();
                                 dt.start();
                                 dft.start();
-                                balls=new ArrayList<>(0);
-                                balls.add(new ball());
-                                obstacles=new ArrayList<>(0);
-                                state=false;
+                                try {
+                                    planet=new Planet(1);
+                                } catch (IOException ioException) {
+                                    ioException.printStackTrace();
+                                }
+                                balls = new ArrayList<>(0);
+                                balls.add(new ball(spriteList, false));
+                                obstacles = new ArrayList<>(0);
+                                state = false;
                                 break;
                             case 2:
                                 Runtime.getRuntime().exit(0);
                         }
                     }
-                    if (selected<0)selected=1-selected;
-                    selected=selected%3;
+                    if (selected < 0) selected = 1 - selected;
+                    selected = selected % 3;
                 }
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
-                    start=!start;
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    start = !start;
                     System.out.println(start);
-                }else {
+                } else {
                     if (start)
-                    state = !state;
+                        state = !state;
                 }
             }
         });
-        balls.add(new ball());
-        gf.add(new JPanel(){
+        balls.add(new ball(spriteList, false));
+        gf.add(new JPanel() {
+            private int i = 0;
+
             @Override
-            public void paintComponent(Graphics g){
-                ((Graphics2D)g).setRenderingHint(
+            public void paintComponent(Graphics g) {
+                ((Graphics2D) g).setRenderingHint(
                         RenderingHints.KEY_TEXT_ANTIALIASING,
                         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                g.setColor(new Color(97,97,97,255));
-                g.fillRect(0,0,gf.getWidth(),getHeight());
+                ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                g.setColor(new Color(0, 0, 0, 255));
+                g.fillRect(0, 0, gf.getWidth(), getHeight());
                 g.setColor(Color.WHITE);
-                g.setFont(g.getFont().deriveFont((float) (tk.getScreenSize().width/40)));
-                FontMetrics fm=g.getFontMetrics();
-                g.drawString(String.valueOf(score),tk.getScreenSize().width/2-(fm.stringWidth(String.valueOf(score))/2),tk.getScreenSize().height/10-g.getFont().getSize()/2);
+                g.setFont(g.getFont().deriveFont((float) (tk.getScreenSize().width / 40)));
+                FontMetrics fm = g.getFontMetrics();
+                g.drawString(String.valueOf(score), tk.getScreenSize().width / 2 - (fm.stringWidth(String.valueOf(score)) / 2), tk.getScreenSize().height / 10 - g.getFont().getSize() / 2);
+                for (Displayable displayable : (ArrayList<Displayable>) getBackdrops().clone()) {
+                    g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
+                }
+                g.drawImage(planet.getImage(i), planet.getx(), planet.gety(),gf);
+                for (Displayable displayable : (ArrayList<Displayable>) getBalls().clone()) {
+                    g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
+                }
+                for (Displayable displayable : (ArrayList<Displayable>) getObstacles().clone()) {
+                    g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
+                }
 
-                for (Displayable displayable: (ArrayList<Displayable>)getBalls().clone()) {
-                    g.drawImage(displayable.getImage(),displayable.getx(),displayable.gety(),gf);
-                    //System.out.println("repainted");
-                }
-                for (Displayable displayable:(ArrayList<Displayable>)getObstacles().clone()) {
-                    g.drawImage(displayable.getImage(),displayable.getx(),displayable.gety(),gf);
-                }
-                if (!start){
+                if (!start) {
                     g.setColor(new Color(0, 0, 0, 150));
-                    g.fillRect(0,0,gf.getWidth(),gf.getHeight());
+                    g.fillRect(0, 0, gf.getWidth(), gf.getHeight());
                     for (int i = 0; i < menu.length; i++) {
-                        if (selected==i){
-                            g.setColor(new Color(0, 164, 253,255));
-                        }else{
+                        if (selected == i) {
+                            g.setColor(new Color(0, 164, 253, 255));
+                        } else {
                             g.setColor(Color.WHITE);
                         }
-                        g.drawString(menu[i], (gf.getWidth()-(fm.stringWidth(menu[i])))/2,tk.getScreenSize().height/5*(i+2)-fm.getHeight()/2);
+                        g.drawString(menu[i], (gf.getWidth() - (fm.stringWidth(menu[i]))) / 2, tk.getScreenSize().height / 5 * (i + 2) - fm.getHeight() / 2);
                     }
+                } else {
+                    i++;
                 }
             }
         });
+        backdropGenerator.init();
         gf.setUndecorated(true);
         gf.setVisible(true);
         ct.start();
         dt.start();
         dft.start();
     }
+
+
+
 }
