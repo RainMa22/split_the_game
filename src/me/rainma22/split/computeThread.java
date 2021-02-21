@@ -11,6 +11,7 @@ public class computeThread extends Thread {
     public void run() {
         long current = System.currentTimeMillis();
         long prev = current, diff;
+
         int i = 0;
         while (running) {
             current = System.currentTimeMillis();
@@ -47,22 +48,28 @@ public class computeThread extends Thread {
                     ArrayList<Displayable> obstacles = (ArrayList<Displayable>) Main.getObstacles().clone();
                     ArrayList<backdrop> backdrops= (ArrayList<backdrop>) Main.getBackdrops().clone();
                     i += Main.difficulty + Main.difficulty * Math.random() * 10;
-                    /*if (i >= 500) {
-                        obstacles.add(new Obstacle());
+                    if (i >= 500) {
+                        try {
+                            obstacles.add(new Obstacle());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         i %= 500;
                     }
                     for (Displayable obstacle : obstacles) {
                         obstacle.setx((int) (obstacle.getx() - speed + 0.5));
                         if (obstacle.getx() <= 0) remove.add(obstacle);
-                        for (Displayable ball : balls) {
+                        for (ball ball : balls) {
                             if (ball.getx() + ball.getImage(0).getWidth() >= obstacle.getx() && ball.getx() <= obstacle.getx() + obstacle.getImage(0).getWidth()) {
                                 if (ball.gety() + ball.getImage(0).getHeight() >= obstacle.gety() && ball.gety() <= obstacle.gety() + obstacle.getImage(0).getHeight()) {
+                                    ball.exploded=true;
                                     Main.setStart(false);
                                     Main.setFailed(true);
+                                    Main.audioHandler.playSFX(0);
                                 }
                             }
                         }
-                    }*/
+                    }
                     ArrayList<backdrop> tmp=new ArrayList<>(0);
                     for (backdrop bd:backdrops) {
                         bd.setx(bd.getx()-bd.getSpeed());

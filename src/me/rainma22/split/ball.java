@@ -1,7 +1,10 @@
 package me.rainma22.split;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class ball implements Displayable {
     private BufferedImage image;
@@ -9,6 +12,8 @@ public class ball implements Displayable {
     private int x;
     private int y;
     private final boolean red;
+    public boolean exploded=false;
+    private BufferedImage explosion;
 
     public ball(BufferedImage bi, boolean red) {
         this.red = red;
@@ -16,10 +21,21 @@ public class ball implements Displayable {
         Toolkit tk = Toolkit.getDefaultToolkit();
         x = tk.getScreenSize().width / 30 - 50 / 2;
         y = tk.getScreenSize().height / 2 - 50 / 2;
+        try {
+            explosion = ImageIO.read(new File("explosion.png"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
-
     @Override
     public BufferedImage getImage(int i) {
+        if (exploded){
+            image = new BufferedImage(100, 100, BufferedImage.TYPE_4BYTE_ABGR);
+            Graphics2D g2d = image.createGraphics();
+            g2d.drawImage(explosion,0,0,100,100,null);
+            g2d.dispose();
+            return image;
+        }
         i=i%60;
         image = new BufferedImage(50, 50, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics2D g2d = image.createGraphics();

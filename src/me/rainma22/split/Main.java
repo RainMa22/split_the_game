@@ -5,14 +5,21 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
+    private static boolean skipMusic=false;
+    public static synchronized boolean SkipMusic(){
+        return skipMusic;
+    }
+    public static synchronized void SkipMusic(boolean b){
+        skipMusic=b;
+    }
     private static double scale=1;
+    public static AudioHandler audioHandler=new AudioHandler();
     public static GameFrame gf = new GameFrame();
     public static double difficulty = 1;
     public static int score = 0;
@@ -86,9 +93,34 @@ public class Main {
         Main.backdrops = backdrops;
     }
 
-
+    private static synchronized void reset(boolean s){
+        try{
+        score = 0;
+        ct.running = false;
+        dt.running = false;
+        dft.running = false;
+        backdrops.clear();
+        backdropGenerator.init();
+        ct = new computeThread();
+        dt = new DisplayThread();
+        dft = new DifficultyThread();
+        ct.start();
+        dt.start();
+        dft.start();
+            planet=new Planet(0);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        balls = new ArrayList<>(0);
+        balls.add(new ball(spriteList, false));
+        obstacles = new ArrayList<>(0);
+        state = true;
+        start = s;
+        failed = false;
+    }
 
     public static void main(String[] args) throws IOException {
+        Main.audioHandler.playMusic();
         backdropGenerator.init();
         Toolkit tk = Toolkit.getDefaultToolkit();
         planet=new Planet(0);
@@ -110,29 +142,7 @@ public class Main {
                                 start = true;
                                 if (!isFailed()) break;
                             case 1:
-                                start = true;
-                                failed = false;
-                                score = 0;
-                                ct.running = false;
-                                dt.running = false;
-                                dft.running = false;
-                                backdrops.clear();
-                                backdropGenerator.init();
-                                ct = new computeThread();
-                                dt = new DisplayThread();
-                                dft = new DifficultyThread();
-                                ct.start();
-                                dt.start();
-                                dft.start();
-                                try {
-                                    planet=new Planet(0);
-                                } catch (IOException ioException) {
-                                    ioException.printStackTrace();
-                                }
-                                balls = new ArrayList<>(0);
-                                balls.add(new ball(spriteList, false));
-                                obstacles = new ArrayList<>(0);
-                                state = false;
+                                reset(true);
                                 break;
                             case 2:
                                 Runtime.getRuntime().exit(0);
@@ -147,8 +157,10 @@ public class Main {
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                     start = !start;
-                    System.out.println(start);
-                } else {
+                    if (isFailed()) reset(true);
+                } else if (e.getKeyCode()==KeyEvent.VK_N){
+                    SkipMusic(true);
+                }else{
                     if (start)
                         state = !state;
                 }
@@ -165,7 +177,6 @@ public class Main {
                         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
                 ((Graphics2D) g).scale(scale,scale);
-                AffineTransform transform=((Graphics2D) g).getTransform();
                 g.setColor(new Color(0, 0, 30, 255));
                 g.fillRect(0, 0, gf.getWidth(), getHeight());
                 g.setColor(Color.WHITE);
@@ -177,8 +188,10 @@ public class Main {
                 }
                 BufferedImage planetImg=planet.getImage(i);
                 g.drawImage(planetImg, planet.getx(),  planet.gety(),(int)(planetImg.getWidth()* planet.getScale()), (int) (planetImg.getHeight()*planet.getScale()),gf);
-                for (Displayable displayable : (ArrayList<Displayable>) getBalls().clone()) {
-                    g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
+                for (ball displayable : (ArrayList<ball>) getBalls().clone()) {
+                    if (displayable.exploded) {
+                        g.drawImage(displayable.getImage(i), displayable.getx()-displayable.getImage(i).getWidth()/4, displayable.gety()-displayable.getImage(i).getHeight()/4, gf);
+                    }else g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
                 }
                 for (Displayable displayable : (ArrayList<Displayable>) getObstacles().clone()) {
                     g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
@@ -202,9 +215,7 @@ public class Main {
         });
         gf.setUndecorated(true);
         gf.setVisible(true);
-        ct.start();
-        dt.start();
-        dft.start();
+        reset(false);
     }
 
 
