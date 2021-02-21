@@ -5,12 +5,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
+    private static double scale=1;
     public static GameFrame gf = new GameFrame();
     public static double difficulty = 1;
     public static int score = 0;
@@ -87,8 +89,9 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException {
+        backdropGenerator.init();
         Toolkit tk = Toolkit.getDefaultToolkit();
-        planet=new Planet(1);
+        planet=new Planet(0);
         spriteList = ImageIO.read(new File("sprite.png"));
         gf.addKeyListener(new KeyListener() {
             @Override
@@ -122,7 +125,7 @@ public class Main {
                                 dt.start();
                                 dft.start();
                                 try {
-                                    planet=new Planet(1);
+                                    planet=new Planet(0);
                                 } catch (IOException ioException) {
                                     ioException.printStackTrace();
                                 }
@@ -161,7 +164,9 @@ public class Main {
                         RenderingHints.KEY_TEXT_ANTIALIASING,
                         RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-                g.setColor(new Color(0, 0, 0, 255));
+                ((Graphics2D) g).scale(scale,scale);
+                AffineTransform transform=((Graphics2D) g).getTransform();
+                g.setColor(new Color(0, 0, 30, 255));
                 g.fillRect(0, 0, gf.getWidth(), getHeight());
                 g.setColor(Color.WHITE);
                 g.setFont(g.getFont().deriveFont((float) (tk.getScreenSize().width / 40)));
@@ -170,7 +175,8 @@ public class Main {
                 for (Displayable displayable : (ArrayList<Displayable>) getBackdrops().clone()) {
                     g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
                 }
-                g.drawImage(planet.getImage(i), planet.getx(), planet.gety(),gf);
+                BufferedImage planetImg=planet.getImage(i);
+                g.drawImage(planetImg, planet.getx(),  planet.gety(),(int)(planetImg.getWidth()* planet.getScale()), (int) (planetImg.getHeight()*planet.getScale()),gf);
                 for (Displayable displayable : (ArrayList<Displayable>) getBalls().clone()) {
                     g.drawImage(displayable.getImage(i), displayable.getx(), displayable.gety(), gf);
                 }
@@ -194,7 +200,6 @@ public class Main {
                 }
             }
         });
-        backdropGenerator.init();
         gf.setUndecorated(true);
         gf.setVisible(true);
         ct.start();

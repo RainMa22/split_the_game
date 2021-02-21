@@ -47,11 +47,11 @@ public class computeThread extends Thread {
                     ArrayList<Displayable> obstacles = (ArrayList<Displayable>) Main.getObstacles().clone();
                     ArrayList<backdrop> backdrops= (ArrayList<backdrop>) Main.getBackdrops().clone();
                     i += Main.difficulty + Main.difficulty * Math.random() * 10;
-                    if (i >= 500) {
+                    /*if (i >= 500) {
                         obstacles.add(new Obstacle());
                         i %= 500;
                     }
-                    /*for (Displayable obstacle : obstacles) {
+                    for (Displayable obstacle : obstacles) {
                         obstacle.setx((int) (obstacle.getx() - speed + 0.5));
                         if (obstacle.getx() <= 0) remove.add(obstacle);
                         for (Displayable ball : balls) {
@@ -71,10 +71,10 @@ public class computeThread extends Thread {
                     backdrops.remove(tmp);
                     Main.setBackdrops(backdrops);
                     Planet planet=Main.getPlanet();
-                    planet.setx((int) (planet.getx()-speed/5));
-                    if (planet.getx()+planet.getImage(0).getWidth()<=0) {
+                    planet.setx((int) (planet.getx()-speed));
+                    if (planet.getx()+(planet.getImage(0).getWidth()* planet.getScale())<=0) {
                         try {
-                            planet=new Planet(1);
+                            planet=new Planet(planet.getI()+1);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

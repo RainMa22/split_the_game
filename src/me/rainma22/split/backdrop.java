@@ -17,7 +17,6 @@ public class backdrop implements Displayable {
         g2d.setColor(Color.WHITE);
         g2d.fillOval(0, 0, speed, speed);
         g2d.dispose();
-        System.out.println(speed);
     }
 
     @Override
