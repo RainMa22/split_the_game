@@ -35,6 +35,7 @@ public class Obstacle implements Displayable {
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g2d.drawImage(image,-height*scale*(i/6),0,image.getWidth()*scale,height*scale, null);
         g2d.dispose();
+        if (Main.performanceMode) return tmp;
         BufferedImage tmp2=new BufferedImage(height*scale,height*scale,image.getType());
         g2d= tmp2.createGraphics();
         if (clockwise)g2d.rotate(Math.toRadians(i),tmp.getWidth()/2,tmp.getWidth()/2);

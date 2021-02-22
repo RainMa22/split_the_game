@@ -8,10 +8,12 @@ public class backdrop implements Displayable {
     private BufferedImage image;
 
     public backdrop(boolean b) {
+        byte variance=5;
+        if (Main.performanceMode) variance=3;
         if (b) x = Main.gf.getWidth();
         else x=(int) (Math.random() * Main.gf.getWidth() + 0.5);
         y = (int) (Math.random() * Main.gf.getHeight() + 0.5);
-        speed = (int) (Math.random() * 5 + 1);
+        speed = (int) (Math.random() * variance + 1);
         image = new BufferedImage(speed, speed, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g2d = image.createGraphics();
         g2d.setColor(Color.WHITE);

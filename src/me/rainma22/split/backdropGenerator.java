@@ -4,6 +4,10 @@ import java.util.ArrayList;
 
 public class backdropGenerator {
     public static void init(){
+        if (Main.performanceMode){
+            generate(20,false);
+            return;
+        }
         generate(512,false);
     }
     public static synchronized void generate(int count,boolean b){

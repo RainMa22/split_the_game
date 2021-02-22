@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
+    public static boolean performanceMode;
     private static boolean skipMusic=false;
     public static synchronized boolean SkipMusic(){
         return skipMusic;
@@ -120,6 +121,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
+        if (args.length>=1) performanceMode=true;
         Main.audioHandler.playMusic();
         backdropGenerator.init();
         Toolkit tk = Toolkit.getDefaultToolkit();

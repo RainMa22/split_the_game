@@ -11,7 +11,7 @@ public class computeThread extends Thread {
     public void run() {
         long current = System.currentTimeMillis();
         long prev = current, diff;
-
+        byte counter=0;
         int i = 0;
         while (running) {
             current = System.currentTimeMillis();
@@ -77,21 +77,29 @@ public class computeThread extends Thread {
                     }
                     backdrops.remove(tmp);
                     Main.setBackdrops(backdrops);
-                    Planet planet=Main.getPlanet();
-                    planet.setx((int) (planet.getx()-speed));
-                    if (planet.getx()+(planet.getImage(0).getWidth()* planet.getScale())<=0) {
-                        try {
-                            planet=new Planet(planet.getI()+1);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    if (!Main.performanceMode) {
+                        Planet planet = Main.getPlanet();
+                        planet.setx((int) (planet.getx() - speed));
+                        if (planet.getx() + (planet.getImage(0).getWidth() * planet.getScale()) <= 0) {
+                            try {
+                                planet = new Planet(planet.getI() + 1);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
+                        Main.setPlanet(planet);
                     }
-                    Main.setPlanet(planet);
                     obstacles.removeAll(remove);
                     Main.setBalls((ArrayList<ball>) balls.clone());
                     Main.setObstacles((ArrayList<Displayable>) obstacles.clone());
                     Main.score += Main.difficulty;
-                    backdropGenerator.generate(1,true);
+                    if (Main.performanceMode){
+                        if(counter==32) {
+                            backdropGenerator.generate(1, true);
+                            counter=0;
+                        }
+                        counter++;
+                    }else backdropGenerator.generate(1,true);
                 }
             } else {
                 try {

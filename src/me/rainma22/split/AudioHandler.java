@@ -31,11 +31,9 @@ public class AudioHandler {
                             while (cliptime<clip.getMicrosecondLength()&&!Main.SkipMusic()){
                                 cliptime=clip.getMicrosecondPosition();
                                 Thread.sleep(100);
-                                System.out.println(cliptime+"/"+clip.getMicrosecondLength());
                             }
                             if (Main.SkipMusic()) Main.SkipMusic(false);
                             clip.close();
-                            System.out.println("clip closed");
                         }
                         }catch(Exception e){
                             e.printStackTrace();
